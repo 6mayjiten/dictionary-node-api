@@ -1,9 +1,10 @@
 var User = require('./user');
-var Dictionary = require('./dictionary');
+var English = require('./english');
 var Result = require('./result');
+var Course = require('./course');
 
 module.exports =  {
-  User,Dictionary,Result
+    User,English,Result,Course
 }
 
 console.log('Executing Model: index.js ...');

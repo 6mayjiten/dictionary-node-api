@@ -1,7 +1,7 @@
 var jwt = require('jsonwebtoken');
 var config = require('../config');
 
-function verifyToken(req, res, next) {
+verifyToken = (req, res, next) => {
     // check header or url parameters or post parameters for token
     var token = req.headers['x-access-token'];
     if (!token)

@@ -4,7 +4,7 @@ var bcrypt = require('bcryptjs');
 var config = require('../config'); // get our config file
 
 module.exports = {
-    register: function(req, res) {
+    register: (req, res) => {
         if (!req.body.email || !req.body.password || !req.body.first_name) {
             return res.status(400).json({error:true,message:"Required parameters are missing."});
         }else if(req.body.password.length < 8){
@@ -34,7 +34,7 @@ module.exports = {
         });
     },
 
-    login: function(req, res) {
+    login: (req, res) => {
         if (!req.body.email || !req.body.password) {
             return res.status(400).json({error:true,message:"Required parameters are missing."});
         }
@@ -56,7 +56,7 @@ module.exports = {
         });
     },
 
-    verifyToken: function(req, res) {
+    verifyToken: (req, res) => {
         if (!req.body.token){
             return res.status(403).json({ error: true, message: 'No token provided.' });
         }

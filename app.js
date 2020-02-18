@@ -14,7 +14,7 @@ var mongoose = require('mongoose');
 
 //Set up default mongoose connection
 var mongoDB = config.dbUrl;
-mongoose.connect(mongoDB, { useNewUrlParser: true });
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false });
 mongoose.connection.on("connected",(err,res) => {
     console.log("mongoose is connected");
 });

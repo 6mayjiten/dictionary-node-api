@@ -137,15 +137,15 @@ main = async (word) => {
 
 fetchMeaning = async (word) => {
 	return new Promise(resolve => {
-		axios.get(config.oxfordUrl + '/en-us/' + word, {
+		axios.get(process.env.oxfordUrl + '/en-us/' + word, {
 			params: {
 				fields: 'definitions',
 				strictMatch: true
 			},
 			headers: {
 				Accept: 'application/json',
-				app_id: config.appId,
-				app_key: config.appKey
+				app_id: process.env.appId,
+				app_key: process.env.appKey
 			}
 		})
 			.then(function (response) {

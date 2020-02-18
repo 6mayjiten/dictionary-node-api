@@ -20,7 +20,7 @@ module.exports = {
             db.User.create({ first_name : req.body.first_name, last_name: lastName, email : req.body.email, password : hashedPassword},
                 function (err, user) {
                     if (err) return res.status(500).json({error:true,message:"There was a problem registering the user."});
-                    var token = jwt.sign({ id: user._id }, config.secret, {
+                    var token = jwt.sign({ id: user._id }, process.env.secret, {
                         expiresIn: '720h' // expires in 30 days
                     });
                     user_info = {
@@ -45,7 +45,7 @@ module.exports = {
             var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
             if (!passwordIsValid) return res.status(401).json({ error:true, message: "Wrong password." });
 
-            var token = jwt.sign({ id: user._id }, config.secret, {
+            var token = jwt.sign({ id: user._id }, process.env.secret, {
                 expiresIn: '720h' // expires in 30 days
             });
             user_info = {
@@ -60,8 +60,8 @@ module.exports = {
         if (!req.body.token){
             return res.status(403).json({ error: true, message: 'No token provided.' });
         }
-
-        jwt.verify(req.body.token, config.secret, function(err, decoded) {
+        console.log(process.env.secret);
+        jwt.verify(req.body.token, process.env.secret, function(err, decoded) {
             if (err){
                 return res.status(200).json({ auth: false, message: 'Session Expired.' });
             }

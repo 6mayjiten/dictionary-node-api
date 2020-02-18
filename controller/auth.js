@@ -60,7 +60,6 @@ module.exports = {
         if (!req.body.token){
             return res.status(403).json({ error: true, message: 'No token provided.' });
         }
-        console.log(process.env.secret);
         jwt.verify(req.body.token, process.env.secret, function(err, decoded) {
             if (err){
                 return res.status(200).json({ auth: false, message: 'Session Expired.' });

@@ -1,13 +1,13 @@
-var mongoose = require('mongoose');
+let mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 mongoose.Promise = require('bluebird');
 
 const courseQuestionSchema = new Schema({
     course_id: {type: String, required: true},
+    level_id: {type: String, required: true},
     question_id: {type:String, required: true},
-    question_year: {type:String, required: true},
-    level: {type: String, required: true}
+    year: {type:String, required: true}
     //timestamp: { type: Date, default: Date.now},
 });
 

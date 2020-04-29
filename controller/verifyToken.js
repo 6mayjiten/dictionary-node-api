@@ -8,7 +8,7 @@ verifyToken = (req, res, next) => {
         return res.status(403).json({ error: true, message: 'No token provided.' });
 
     // verifies secret and checks exp
-    jwt.verify(token, process.env.secret, function(err, decoded) {
+    jwt.verify(token, config.secret, function(err, decoded) {
         if (err)
             return res.status(500).json({ error: true, message: 'Failed to authenticate token.' });
         // if everything is good, save to request for use in other routes

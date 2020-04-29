@@ -18,7 +18,18 @@ module.exports = {
 			return childCourses;
 		})
 		let finalCourses = await combineCourses(parentCourseList,childCourseList);
-		console.log(finalCourses);
+		for (const singleCourse of finalCourses){
+			for(const subCourse of singleCourse.sub_course){
+				await db.Ques_Level_Year.find({course_id: subCourse.parent_id, level_id: subCourse._id}, {
+					year: 1,
+					_id: 0
+				}).distinct('year', function (error, year) {
+					subCourse.availableYear = year;
+				});
+				let isCompleted = await isCourseCompleted(req.user_id, subCourse._id);
+				subCourse.is_completed = isCompleted;
+			}
+		}
 		res.status(200).json(finalCourses);
     }
 }
@@ -26,21 +37,24 @@ module.exports = {
 combineCourses = async (courses, childCourses) => {
 	return new Promise(resolve => {
 		let finalCourses = [];
-		courses.forEach((parentCourse, index) => {
+		for (const parentCourse of courses) {
 			let childCourseList = [];
-			childCourses.forEach(childCourse => {
+			for (const childCourse of childCourses) {
+				let courseData = {};
 				if(childCourse.parent_id == parentCourse._id)
 				{
-					childCourseList.push(childCourse)
+					courseData._id = childCourse._id;
+					courseData.course_name = childCourse.course_name;
+					courseData.parent_id = childCourse.parent_id;
+					childCourseList.push(courseData);
 				}
-			})
+			}
 			let objTOReturn = {
 				main_course: parentCourse.course_name,
-				sub_course: childCourseList
+				sub_course: childCourseList,
 			}
 			finalCourses.push(objTOReturn)
-		})
+		}
 		resolve(finalCourses);
 	})
 }
-

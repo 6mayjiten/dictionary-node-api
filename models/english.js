@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+let mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 // mongoose.Promise = global.Promise; Inserted the bluebird module here to fix warnings described in app.js

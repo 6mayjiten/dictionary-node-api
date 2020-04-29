@@ -2,19 +2,26 @@ var db = require('../models');
 var Promise = require('promise');
 
 module.exports = {
-    save_answer: async (req,res) => {
-        if (!req.body.course_id || req.body.is_right==null || req.body.is_right==undefined) {
-            return res.status(400).json({error:true,message:"Required parameters are missing."});
+    save_answer: async (req, res) => {
+        if (!req.body.result_id || req.body.is_right == undefined) {
+            return res.status(400).json({error:true,message:"Required parameters are missing. (result_id, is_right)"});
         }
-        const filter = { _id: req.body.course_id};
+        const filter = { _id: req.body.result_id};
         if(!req.body.is_right){
-            let result = await db.Result.findOne(filter);
-            console.log("result "+result);
-            let update={};
-            if(result!=null){
-                update = { wrong_count: result.wrong_count+1 };
-                await db.Result.findOneAndUpdate(filter, update);
-            }
+            await db.Result.findOne(filter).then( (result) => {
+                if(result){
+                    let update={};
+                    update = { wrong_count: result.wrong_count+1 };
+                    db.Result.findOneAndUpdate(filter, update,{new: true},(err, updatedResult) => {
+                        console.log(updatedResult);
+                    });
+                }
+            }).catch((err) => {
+                return res.status(500).json({
+                    message: "Something went wrong",
+                    error: true
+                });
+            });
         }else{
             await db.Result.findOneAndUpdate(filter, {is_answerd: true});
         }

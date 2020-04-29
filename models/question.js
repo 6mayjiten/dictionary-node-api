@@ -1,15 +1,15 @@
-var mongoose = require('mongoose');
+let mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 mongoose.Promise = require('bluebird');
 
-const examQuestionSchema = new Schema({
+const QuestionSchema = new Schema({
     question: {type: String, required: true},
     description: {type:String, required: true},
     //img: {data: Buffer, contentType: String}
     //timestamp: { type: Date, default: Date.now},
 });
 
-const Exam_Question = mongoose.model('Exam_Question', examQuestionSchema);
+const Question = mongoose.model('Question', QuestionSchema);
 
-module.exports =  Exam_Question;
+module.exports =  Question;

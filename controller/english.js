@@ -1,82 +1,101 @@
-var db = require('../models');
-var Promise = require('promise');
+let db = require('../models');
+let Promise = require('promise');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const fs = require('fs');
 const util = require('util');
 const axios = require('axios');
-var config = require('../config.js');
+let config = require('../config.js');
 
 module.exports = {
 	get_word: async (req, res) => {
-		if (!req.body.course_id) {
-			return res.status(400).json({error: true, message: "Missing required parameter (course_id)."});
+		if (!req.body.level_id || !req.body.course_id) {
+			return res.status(400).json({error: true, message: "Missing required parameter (level_id, course_id)."});
 		}
-		var count = await totalCount();
-		var wordJson = [];
-		var isAsked = false;
+		console.log(req.body.level_id);
+		let count = await totalWordCount();
+		let wordJson = [];
+		let isAsked = false;
 		let meaningString = '';
 		console.log(count);
-		do {
-			console.log("in loop");
-			wordJson = await getRandomWord(count);
-			isAsked = await isAlreadyAnswered(wordJson._id, req.user_id, req.body.course_id);
-		} while (isAsked);
-		if (!wordJson.is_audio_available) {
-			console.log('generate audio');
-			await main(wordJson.word);
-			const filter = {_id: wordJson._id};
-			const update = {is_audio_available: true};
-			await db.English.findOneAndUpdate(filter, update);
-		}
+		if(await countQuestionAnswered(req.user_id, req.body.level_id) !== count) {
+			do {
+				console.log("in loop");
+				wordJson = await getRandomWord(count);
+				isAsked = await isAlreadyAnswered(wordJson._id, req.user_id, req.body.level_id);
+			} while (isAsked);
 
-		if(wordJson.meaning == ""){
-			console.log('generate meaning');
-			let meaning = await fetchMeaning(wordJson.word);
-			if(meaning!="error"){
-				meaning.forEach( (mean, index) => {
-					if(index<3) {
-						if (index > 0) {
-							meaningString += '=> ';
-						}
-						meaningString += mean.definitions[0];
-					}
-				})
-				console.log(meaningString);
+			if (!wordJson.is_audio_available) {
+				console.log('generate audio');
+				await main(wordJson.word);
 				const filter = {_id: wordJson._id};
-				const update = {meaning: meaningString};
-				let doc = await db.English.findOneAndUpdate(filter, update);
+				const update = {is_audio_available: true};
+				await db.English.findOneAndUpdate(filter, update);
 			}
-		}
-		await db.Result.find({user_id: req.user_id, ques_id: wordJson._id, course_id: req.body.course_id}).then((resultRes) => {
-			if (resultRes.length < 1) {
-				const resultObj = new db.Result({
-					ques_id: wordJson._id,
-					user_id: req.user_id,
-					course_id: req.body.course_id,
-				});
-				resultObj.save().then((resultRes1) => {
-					return res.status(200).json({word: wordJson.word, meaning: meaningString, result_id: resultRes1._id});
-				}).catch((err) => {
-					return res.status(500).json({
-						message: "Something went wrong",
-						error: true
+
+			if (wordJson.meaning == "") {
+				console.log('generate meaning');
+				let meaning = await fetchMeaning(wordJson.word);
+				if (meaning != "error") {
+					meaning.forEach((mean, index) => {
+						if (index < 3) {
+							if (index > 0) {
+								meaningString += '=> ';
+							}
+							meaningString += mean.definitions[0];
+						}
+					})
+					console.log(meaningString);
+					const filter = {_id: wordJson._id};
+					const update = {meaning: meaningString};
+					let doc = await db.English.findOneAndUpdate(filter, update);
+				}
+			}
+
+			await db.Result.find({
+				user_id: req.user_id,
+				ques_id: wordJson._id,
+				course_id: req.body.level_id
+			}).then((resultRes) => {
+				if (resultRes.length < 1) {
+					const resultObj = new db.Result({
+						ques_id: wordJson._id,
+						user_id: req.user_id,
+						course_id: req.body.level_id,
 					});
+					resultObj.save().then((resultRes1) => {
+						return res.status(200).json({
+							word: wordJson.word,
+							meaning: meaningString,
+							result_id: resultRes1._id
+						});
+					}).catch((err) => {
+						return res.status(500).json({
+							message: "Something went wrong",
+							error: true
+						});
+					});
+				} else if (resultRes.length > 0) {
+					res.status(200).json({word: wordJson.word, meaning: meaningString, result_id: resultRes[0]._id});
+				} else {
+					return res.status(500).json({error: true, message: "Something went wrong."});
+				}
+			}).catch(err => {
+				return res.status(500).json({
+					message: "Something went wrong",
+					error: true
 				});
-			} else if (resultRes.length > 0) {
-				res.status(200).json({word: wordJson.word, meaning: meaningString, result_id: resultRes[0]._id});
-			} else {
-				return res.status(500).json({error: true, message: "Something went wrong."});
-			}
-		}).catch( err => {
-			return res.status(500).json({
-				message: "Something went wrong",
-				error: true
-			});
-		})
+			})
+		}else{
+			await makeCourseCompleted(req.user_id, req.body.level_id, req.course_id);
+			return res.status(200).json({
+				message: "Course Completed.",
+				completed: true
+			})
+		}
 	},
 }
 
-totalCount = async () => {
+totalWordCount= async () => {
 	return new Promise(resolve => {
 		db.English.countDocuments().exec((err, count) => {
 			if (err) {
@@ -97,21 +116,6 @@ getRandomWord = async (count) => {
 			}
 			resolve(wordData);
 		})
-	})
-}
-
-isAlreadyAnswered = (questionId, userId, courseId) => {
-	return new Promise(resolve => {
-		db.Result.find({ user_id: userId, ques_id: questionId, course_id: courseId, is_answerd: true}).limit(1).exec((err, result) => {
-			if (err) {
-				return res.status(500).json({ error:true, message: "Something went wrong." });
-			}
-			if(result.length>0){
-				resolve(true);
-			}else{
-				resolve(false);
-			}
-		});
 	})
 }
 
@@ -137,15 +141,15 @@ main = async (word) => {
 
 fetchMeaning = async (word) => {
 	return new Promise(resolve => {
-		axios.get(process.env.oxfordUrl + '/en-us/' + word, {
+		axios.get(config.oxfordUrl + '/en-us/' + word, {
 			params: {
 				fields: 'definitions',
 				strictMatch: true
 			},
 			headers: {
 				Accept: 'application/json',
-				app_id: process.env.appId,
-				app_key: process.env.appKey
+				app_id: config.appId,
+				app_key: config.appKey
 			}
 		})
 			.then(function (response) {

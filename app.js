@@ -1,23 +1,20 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cors = require('cors');
-var indexRouter = require('./routes/index');
-var  model = require('./models');
-var app = express();
-var config = require('./config.js');
+let createError = require('http-errors');
+let express = require('express');
+let path = require('path');
+let cookieParser = require('cookie-parser');
+let logger = require('morgan');
+let cors = require('cors');
+let indexRouter = require('./routes/index');
+let  model = require('./models');
+let app = express();
+let config = require('./config.js');
 
 //Import the mongoose module
-var mongoose = require('mongoose');
+let mongoose = require('mongoose');
 
 //Set up default mongoose connection
-var mongoDB = process.env.dbUrl;
+let mongoDB = config.dbUrl;
 
-/*if(config.dbUrl !=null && config.dbUrl != undefined && config.dbUrl!='') {
-  mongoDB = config.dbUrl;
-}*/
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false });
 mongoose.connection.on("connected",(err,res) => {
     console.log("mongoose is connected");

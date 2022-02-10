@@ -455,7 +455,7 @@ css@~1.0.8:
     css-parse "1.0.4"
     css-stringify "1.0.5"
 
-debug@2.6.9, debug@^2.2.0, debug@~2.6.9:
+debug@2.6.9, debug@~2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
   dependencies:
@@ -1725,10 +1725,8 @@ uid-safe@~2.1.5:
     random-bytes "~1.0.0"
 
 undefsafe@^2.0.2:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/undefsafe/-/undefsafe-2.0.3.tgz#6b166e7094ad46313b2202da7ecc2cd7cc6e7aae"
-  dependencies:
-    debug "^2.2.0"
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/undefsafe/-/undefsafe-2.0.5.tgz#38733b9327bdcd226db889fb723a6efd162e6e2c"
 
 unique-string@^1.0.0:
   version "1.0.0"
